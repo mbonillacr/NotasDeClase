@@ -1,0 +1,619 @@
+---
+title: "Big Data & Decision Science"
+author: "Minor Bonilla Gómez"
+date: "minor.bonilla@ulead.ac.cr"
+output:
+  rmdformats::material:
+    highlight: kate
+    self_contained: true
+    code_folding: show
+    thumbnails: true
+    gallery: true
+    fig_width: 4
+    fig_height: 4
+    df_print: kable
+---
+
+```{r echo_f, include=FALSE, message=FALSE, warning=FALSE}
+  knitr::opts_chunk$set(echo = FALSE)
+  CLASE01="G:/PRESENTACIONES/CLASES/CL01/"
+  CLASE00="G:/PRESENTACIONES/CLASES/CL00/"
+```
+
+```{r librerias, message=FALSE, warning=FALSE}
+  #install.packages("ggfortify")
+  #install.packages("zoo")
+  
+  library(devtools)
+  library(datarium)
+  library(zoo)
+  library(ggfortify)
+  library(magrittr)
+  library(DT)
+
+```
+
+
+[comment]: <> (
+                LOGIT https://cojamalo.github.io/German_Credit_Analysis/report.html
+                TIME SERIES http://r-statistics.co/Time-Series-Analysis-With-R.html
+                VISUALIZACION:ggfortyfy
+                http://www.sthda.com/english/wiki/ggfortify-extension-to-ggplot2-to-handle-some-popular-packages-r-software-and-data-visualization
+                OJO CON ESTE: 
+                https://daviddalpiaz.github.io/r4sl/logistic-regression.html#rmarkdown-4)
+
+
+# Bienvenida {.tabset}
+
+## Bienvenida
+
+```{r, out.width = "800px",fig.align="right", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE00,"InPutOutPut.gif")
+    knitr::include_graphics(IMG)
+```
+
+## Varios
+
+* Expectativas vs Realidad
+
+    * Horas estudiante
+    * Trabajo Extra-clase
+    * R + XCL
+
+* Canales de comunicación
+  
+  * Email
+  * Portal
+    * Material
+    
+* Normas de Cortesía
+
+  * Celulares en Silencio
+ 
+## Bog Data
+```{r comic000, out.width = "800px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"comic000.gif")
+    knitr::include_graphics(IMG)
+```
+
+## Under Delivering
+```{r comic001, out.width = "800px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"comic001.png")
+    knitr::include_graphics(IMG)
+```
+
+# Las Modas  {.tabset}
+
+## El viaje
+```{r , out.width = "800px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE00,"Bosque.gif")
+    knitr::include_graphics(IMG)
+```
+
+## GALA
+
+```{r imgModa00, out.width = "800px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"Modas001.png")
+    knitr::include_graphics(IMG)
+```
+
+## TENNIS
+```{r imgModa03, out.width = "800px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"Modas002.png")
+    knitr::include_graphics(IMG)
+```
+
+## MARATÓN
+```{r imgModa04, out.width = "800px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"Modas003.png")
+    knitr::include_graphics(IMG)
+```
+
+# El Inicio
+
+```{r imgPearson1896, out.width = "800px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"Pearson.PNG")
+    knitr::include_graphics(IMG)
+```
+
+# El Nuevo Traje del Emperador{.tabset}
+
+## Libro
+```{r ImgElEmperador, out.width = "600px", fig.align="center"}
+    IMG=paste0(CLASE01,"ElReyNoTieneRopa.PNG")
+    knitr::include_graphics(IMG)
+```
+
+## Sinopsis 
+tomado de [WIKIPEDIA](https://es.wikipedia.org/wiki/El_traje_nuevo_del_emperador)
+
+>
+Hace muchos años vivía un rey que era comedido en todo excepto en una cosa: se preocupaba mucho por su vestuario. 
+Un día oyó a Guido y Luigi Farabutto decir que podían fabricar la tela más suave y delicada que pudiera imaginar. 
+Esta prenda, añadieron, tenía la especial capacidad de ser invisible para cualquier estúpido o incapaz para su cargo. 
+Por supuesto, no había prenda alguna sino que los pícaros hacían lucir que trabajaban en la ropa, pero estos se quedaban 
+con los ricos materiales que solicitaban para tal fin.
+>
+Sintiéndose algo nervioso acerca de si él mismo sería capaz de ver la prenda o no, el emperador envió primero a dos de sus 
+hombres de confianza a verlo. Evidentemente, ninguno de los dos admitieron que eran incapaces de ver la prenda y comenzaron 
+a alabar a la misma. Toda la ciudad había oído hablar del fabuloso traje y estaba deseando comprobar cuán estúpido era su vecino.
+>
+Los estafadores hicieron como que le ayudaban a ponerse la inexistente prenda y el emperador salió con ella en un desfile, 
+sin admitir que era demasiado inepto o estúpido como para poder verla.
+>
+Toda la gente del pueblo alabó enfáticamente el traje, temerosos de que sus vecinos se dieran cuenta de que no podían verlo, 
+hasta que un niño dijo:
+>
+¡Pero si va desnudo!
+>
+La gente empezó a cuchichear la frase hasta que toda la multitud gritó que el emperador iba desnudo. 
+>
+El emperador lo oyó y supo que tenían razón... Pero levantó la cabeza y terminó el desfile.
+
+
+# Las Nuevas Modas {.tabset} 
+## THE ECONOMIST
+```{r BigData000, out.width = "700px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"BigData000.JFIF")
+    knitr::include_graphics(IMG)
+```
+
+## TIME
+```{r BigData001, out.width = "700px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"BigData001.PNG")
+    knitr::include_graphics(IMG)
+```
+
+## LO IMPORTANTE
+```{r BigData002, out.width = "700px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"BigData002.PNG")
+    knitr::include_graphics(IMG)
+```
+
+
+# Visualización
+
+[Hans Rosling](https://es.wikipedia.org/wiki/Hans_Rosling)
+
+[gapminder](https://www.gapminder.org/tools/#$chart-type=bubbles)
+
+```{r gapminder, echo = TRUE, out.width = "600px", fig.align="center", message=TRUE, warning=FALSE}
+    
+    gapminder::gapminder %>%
+      plotly::plot_ly(
+                      x = ~log(gdpPercap), 
+                      y = ~lifeExp, 
+                      size = ~pop, 
+                      color = ~continent, 
+                      frame = ~year, 
+                      text = ~country, 
+                      hoverinfo = "text",
+                      type = 'scatter',
+                      mode = 'markers'
+                      )
+```
+
+# Avances {.tabset}
+
+El mundo ha seguido avanzando en todas direcciones...
+[EVANGELISMO???](https://www.cosoit.com/bg-data-evangelist)
+
+## RUBIK
+
+```{r imgRubik, out.width = "700px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"Avances002.PNG")
+    knitr::include_graphics(IMG)
+```
+
+## DISCRIMINACIÓN
+
+```{r imgAIProfiling, out.width = "800px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"Avances003.PNG")
+    knitr::include_graphics(IMG)
+```
+  
+# Proceso de Ciencia de Datos {.tabset}
+
+## Flujo
+```{r imgMSFT001, out.width = "1000px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"Proceso001.PNG")
+    knitr::include_graphics(IMG)
+```
+  
+## RoadMap  
+```{r imgMSFT002, out.width = "1000px",fig.align="center", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"Proceso002.PNG")
+    knitr::include_graphics(IMG)
+```
+  
+Tomado de: 
+(https://docs.microsoft.com/en-us/azure/machine-learning/team-data-science-process/overview)
+
+# Modelación de Datos {.tabset}
+
+## Regresión Lineal {.tabset}
+
+Toda decisión esta influenciada por múltiples elementos, por lo que conocer cuáles guardan relación y cuáles pueden ser descartados de nuestra discusión es una tarea cotidiana. Pero no sólo interesa conocer cuáles de ellos afectan, sino también su grado de interacción. ¿Cómo reacciona un grupo de clientes con una característica particular frente a otro que no posee dicha característica? ¿Cómo afecta la variación de una de las características observadas al proceso conjunto? ¿Cuáles son las variables que inciden en la probabilidad de repago de un crédito? Son el tipo de preguntas que buscamos responder con los modelos multivariantes.
+
+En muchas situaciones tenemos la necesidad de extrapolar nuestros modelos a nuevas observaciones muestrales. Conocer qué pasará con futuras observaciones, se convierte en una ventaja en la automatización de nuestras decisiones
+
+
+### Modelación y Predicción 01
+
+```{r grafMarketing1, out.width = "800px", fig.align="center", message=FALSE, warning=FALSE}
+library(ggplot2)
+ggplot(marketing,aes(youtube,sales))+geom_point()+geom_smooth()
+```
+
+### Modelación y Predicción 02
+
+Simplemente estoy probando que tire algo
+
+```{r iris_pilltabs, results="asis", out.width = "100px"}
+library(questionr)
+library(rmdformats)
+iris$seplc <- cut(iris$Sepal.Length,3)
+tab <- table(iris$Species, iris$seplc)
+pilltabs(tab)
+```
+
+## Regresión Logística {.tabset}
+
+### Modelación y Predicción 
+
+Pero algunas veces, nuestro fenómeno toma una forma particular, tanto que adopta formas binarias:
+ 
+ * Será efectivo el tratamiento?
+ 
+ * Cumplirá los objetivos el nuevo recurso?
+ 
+ * Caerá en *default* el bono del país XXX?
+ 
+ * El cliente repagará la obligación contraída?
+
+```{r procLogit, out.width = "800px", fig.align="center", message=FALSE, warning=FALSE}
+  credit = read.csv("http://freakonometrics.free.fr/german_credit.csv")
+  F=c(1,2,4,5,7,8,9,10,11,12,13,15,16,17,18,19,20)
+  
+  for(i in F) credit[,i]=as.factor(credit[,i])
+  
+  i_test=sample(1:nrow(credit),size=333)
+  i_calibration=(1:nrow(credit))[-i_test]
+  
+  colnames(credit)=tolower(names(credit))
+  credit$creditability_c = ifelse(credit$creditability == 1, "Bueno", "Malo")
+  credit$creditability_c = factor(credit$creditability_c, levels=c("Bueno", "Malo"))
+  
+  credit$creditability = ifelse(credit$creditability == 1, "Good", "Poor")
+  credit$creditability = factor(credit$creditability, levels=c("Good", "Poor"))
+  
+  ggplot(credit, 
+         aes(duration.of.credit..month., 
+         fill=creditability_c, 
+         color=creditability_c)) + geom_density(alpha=0.5)
+```
+
+```{r grafCredit01, out.width = "800px", fig.align="center", message=FALSE, warning=FALSE}
+ggplot(credit, aes(age..years., fill=creditability_c, color = creditability_c)) + geom_density(alpha=0.5)
+```
+
+```{r grafCredit02, out.width = "800px", fig.align="center", message=FALSE, warning=FALSE}
+ggplot(credit, aes(credit.amount, fill=creditability_c, color = creditability_c)) + geom_density(alpha=0.5)
+```
+
+```{r grafCredit03, out.width = "800px", fig.align="center", message=FALSE, warning=FALSE}
+ggplot(credit, aes(as.integer(account.balance), fill=creditability_c, color = creditability_c)) + geom_density(alpha=0.5)
+```
+
+```{r grafCredit04, out.width = "800px", fig.align="center", message=FALSE, warning=FALSE}
+ggplot(credit, aes(as.integer(length.of.current.employment), fill=creditability_c, color = creditability_c)) + geom_density(alpha=0.5)
+
+```
+
+## Clasificación de datos 
+Segmentación de colecciones de datos, en función a similitudes/disimilitudes
+
+```{r grafCluster, out.width = "800px", fig.align="center", message=FALSE, warning=FALSE}
+res.kmeans=kmeans(USArrests, 4)
+autoplot(res.kmeans, 
+         data = USArrests,
+         label = TRUE, 
+         label.size = 3, 
+         frame = TRUE)
+```
+
+## Series de tiempo 
+Es natural trata de inferir que pasará en el futuro con variables que hemos observado a través del tiempo. De ahí la importancia de dar un paso en la dirección de las series de tiempo y comprender cuáles herramientas tenemos a disposición para cumplir con dicha tarea. 
+
+
+```{r grafST, out.width = "800px", fig.align="center", message=FALSE, warning=FALSE}
+Euromkt=EuStockMarkets[, 1]
+autoplot(Euromkt)
+```
+
+<div style="font-size: 33px; color:#115e28;">
+Resulta útil emplear el instrumental estadístico que conocemos?
+ </div>
+
+# R {.tabset}
+
+## R
+R es un entorno y lenguaje de programación con un enfoque al análisis estadístico.
+
+R nació como una reimplementación de software libre del lenguaje S. Se trata de uno de los lenguajes de programación más utilizados en investigación científica, siendo además muy popular en el campo de la minería de datos, la investigación biomédica, la bioinformática y las matemáticas financieras. A esto contribuye la posibilidad de cargar diferentes bibliotecas o paquetes con funcionalidades de cálculo y graficación.
+
+(Tomado de Wikipedia, https://es.wikipedia.org/wiki/R_(lenguaje_de_programaci%C3%B3n))
+
+```{r imgR, fig.align="center", out.width = "800px", message=FALSE, warning=FALSE}
+    IMG=paste0(CLASE01,"R_logo.png")
+    knitr::include_graphics(IMG)
+```
+
+  [PASO 1: DESCARGAR R](https://cran.r-project.org/)
+
+  [PASO 2: DESCARGAR R-Studio](https://www.rstudio.com/)
+
+
+[comment]: <> (http://rstudio-pubs-static.s3.amazonaws.com/307184_b2b04467ad41490ab0206cf066de46df.html)
+
+## Operaciones Basicas
+
+```{r IntroR_001,echo = TRUE, fig.align="center", out.width = "800px", message=FALSE, warning=FALSE}
+a = 123
+b = 456
+x = c(1,6,2)
+y = c(1,4,3)
+
+print(a)
+print(b)
+print(x)
+print(y)
+
+length(x)
+length(y)
+x+y
+ls()
+rm(x,y)
+ls()
+rm(list=ls())
+
+```
+
+## Matrices
+```{r IntroR_002,echo = TRUE, fig.align="center", out.width = "800px", message=FALSE, warning=FALSE}
+A1=matrix(data=c(1,2,3,4), nrow=2, ncol=2)
+
+print(A1)
+
+A2=matrix(c(1,2,3,4),2,2,byrow=FALSE)
+A3=matrix(c(1,2,3,4),2,2,byrow=TRUE)
+
+print(A2)
+print(A3)
+
+A1^2
+sqrt(A1)
+A1^0.5
+
+```
+
+## Operaciones con Matrices
+```{r IntroR_003,echo = TRUE, fig.align="center", out.width = "800px", message=FALSE, warning=FALSE}
+
+A=matrix(c(1,2,3,4),2,2,byrow=FALSE)
+B=matrix(c(5,6,7,8),2,2,byrow=TRUE)
+
+#Multiplicacion POR ELEMENTOS
+A*B	
+
+#Multiplicacion MATRICIAL
+A %*% B	
+
+#Suma MATRICIAL
+A + B	
+
+#Transposicion
+t(A)
+
+#Diagonilizacion
+diag(A)
+
+diag(3)
+
+#Resolver Sistemas de Ecuaciones
+A=matrix(c(1,0,1,1),2,2,byrow=TRUE)
+b=c(1,3)
+solve(A, b)
+
+VP=eigen(A)
+VP$values
+VP$vectors
+
+
+```
+
+## Aleatorios
+```{r IntroR_004,echo = TRUE, fig.align="center", out.width = "800px", message=FALSE, warning=FALSE}
+
+set.seed(1303)
+rnorm(50)
+
+set.seed(3)
+y=rnorm(100)
+mean(y)
+var(y)
+sqrt(var(y))
+sd(y)
+
+x=rnorm(50)
+y=x+rnorm(50,mean=50,sd=.1)
+plot(x,y)
+
+z=-x+rnorm(50,mean=10,sd=.5)
+
+df=data.frame(x,y,z)
+cor(x,y)
+pairs(df, main="Gráfico de Correlaciones")
+
+```
+
+## Carga de Datos
+
+R es capaz de leer multiples fuentes, tanto locales (máquina) como externas (web, db, etc). 
+
+Cargaremos los datos desde un sitio definido, almacenándolos en el entorno R, en un conjunto que llamaremos simplemente DATOS. Una vez cargados, solicitamos el contenido de los primeros [HEAD] así como los últimos [TAIL] 10 registros.
+
+```{r procRIntro01, echo = TRUE, message=FALSE, warning=FALSE}
+  library(xtable)
+  library(knitr)
+  
+  DATOS <- read.csv(url("http://stat511.cwick.co.nz/homeworks/acs_or.csv"))
+
+  A=summary(DATOS)
+  print(A)
+  
+  DT::datatable(A,                    
+                rownames = FALSE, 
+                filter="top",
+                options = list(pageLength = 10, scrollX=T)
+                )
+
+```
+
+## Exploración
+
+```{r procRIntro001, echo = FALSE}
+        DT::datatable(DATOS, 
+                      rownames = FALSE, 
+                      filter="top",
+                      options = list(pageLength = 10, scrollX=T)
+                      )
+```
+
+
+## Tablas (n,p)
+R lee los datos de manera **rectangular** es decir interpreta una tabla (N,P) donde *N* corresponde a la cantidad filas y *P* a la de columnas.
+
+```{r procRIntro02, echo = TRUE}
+
+P=ncol(DATOS)
+N=nrow(DATOS)
+
+print(P)
+print(N)
+
+paste0("TAMAÑO DE LA TABLA: [n=",N,", p=",P,"]")
+
+```
+
+### Mostrar una fila, una columa, o una observación particular:
+
+```{r procRIntro03, echo = TRUE}
+
+i=2
+j=5
+
+Columna_j = DATOS[,j]  # Retornar TODA LA COLUMNA (j)
+Fila_i    = DATOS[i,]  # Retornar TODA LA FILA (i)
+Celda_ij  = DATOS[i,j] # Retornar LA CELDA(i,j)
+
+head(Columna_j,10)
+print(Fila_i)
+print(Celda_ij)
+
+``` 
+ 
+```{r procRIntro04, echo = TRUE}
+# En el acto resume una columna y su contenido
+table(DATOS[,6])       
+
+ # notar que tambien puede llamarse a la variable por su nombre a traves del uso de $
+table(DATOS$bedrooms)    
+
+```  
+
+```{r procRIntro05, echo = TRUE}
+# También es inmediata la construcción de tablas cruzadas
+table(DATOS[,6],DATOS[,9])              
+
+# notar que puede llamarse a la variable por su nombre a través del uso de $
+table(DATOS$bedrooms, DATOS$number_children)   
+
+``` 
+
+```{r procRIntro06, echo = TRUE}
+# CLASS es una de las funciones más útiles pues nos retorna información del TIPO de variable
+class(DATOS$language)
+
+class(DATOS$number_children)
+
+``` 
+
+```{r procRIntro07, echo = TRUE}
+
+# Agregando nuevas variables a nuestro set de datos es inmediato
+DATOS$Aleatorio<- rnorm(nrow(DATOS))  
+head(DATOS$Aleatorio,10)
+
+DATOS$Porc_Sal_Esposa <- DATOS$income_wife/(DATOS$income_wife+DATOS$income_husband)
+head(DATOS$Porc_Sal_Esposa,10)
+
+# Algunas ocasiones estamos interesados en condiciones particulares que ocurren 
+# en los datos para grupos particulares
+
+DATOS_Filtrados <- subset(DATOS,DATOS$income_wife>DATOS$income_husband)
+
+```
+
+### Alguna estadística tradicional:
+
+```{r procRIntro08, echo = TRUE}
+
+# PROMEDIO
+mean(DATOS$income_wife)
+
+# MEDIANA
+median(DATOS$age_husband)
+
+# CUANTILES 
+quantile(DATOS$age_wife)
+
+# DESVIACION ESTANDAR
+sd(DATOS$age_wife)
+
+```  
+
+## Graficación
+
+```{r procRIntro10, echo = TRUE}
+# Asi como crear muchisimos tipo de graficacion
+plot(x = DATOS$age_husband , y = DATOS$age_wife, col="red")
+``` 
+
+```{r procRIntro11, echo = TRUE}
+# Permitiendonos la explaración científica de preguntas importantes
+boxplot(age_husband~internet,data = DATOS, col="light blue")
+title(main="Edad del esposo y tenencia de Internet en casa")
+
+boxplot(age_wife~internet,data =DATOS, col="pink")
+title(main="Edad del esposo y tenencia de Internet en casa")
+
+``` 
+
+# Objetivo de LP
+
+Esto es lo más importante de este curso
+
+<div style="text-align: center"> 
+
+   <font size="300">  
+   <font color='orange'>
+   PLANTEO 
+
+   OPERACION 
+
+   RESPUESTA 
+   </font>
+   </font>
+
+</div>

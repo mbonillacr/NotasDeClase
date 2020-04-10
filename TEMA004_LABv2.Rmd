@@ -1,0 +1,144 @@
+---
+title: "Big Data & Decision Science: LAB"
+date: "minor.bonilla@ulead.ac.cr"
+author: "Minor Bonilla Gómez"
+output:
+  rmdformats::material:
+    highlight: kate
+    self_contained: true
+    code_folding: show
+    thumbnails: true
+    gallery: true
+    fig_width: 4
+    fig_height: 4
+    df_print: kable
+---
+
+```{r echo_f, include=FALSE, message=FALSE, warning=FALSE}
+  knitr::opts_chunk$set(echo = TRUE)
+  CLASE01="C:/Users/minor.bonilla/Pictures/PRESENTACIONES/CLASES/CL01/"
+  CLASE00="C:/Users/minor.bonilla/Pictures/PRESENTACIONES/CLASES/CL00/"
+```
+
+# LIBRERIAS
+
+```{r librerias, include=TRUE, message=FALSE, warning=FALSE}
+
+# Dado que algunas de estas librerias podrían no estar instaladas en nuestra máquina, resulta de suma 
+# importancia instalarlas antes -de ser necesario-; para ello usaremos el comando *install.packages* que 
+# en nuestro caso particular: install.packages("NOMBRE_LIBRERIA")
+  
+library(sqldf)
+library(dplyr)
+library(DT)
+
+```
+
+# LABORATORIO {.tabset .tabset-fade .tabset-pills}
+
+## FELICIDAD
+
+
+```{r, out.width = "800px",fig.align="right", message=FALSE, warning=FALSE}
+    IMG="Happiness.jpg"
+    knitr::include_graphics(IMG)
+```
+
+## DATOS
+
+```{r}
+
+DS=read.csv("G:/TRABAJO/LEAD/2020/ESS/000 CLASES/CL0004/Happiness.LAB.csv")
+DS=dplyr::rename(DS, wp5_country=ï..wp5_country)
+
+df <- DS
+DT::datatable(df,                    
+              rownames = TRUE, 
+              filter="top",
+              options = list(pageLength = 15, scrollX=T)
+              )
+
+#DS.matrix=data.matrix(DS)
+#head(DS.matrix)
+
+names(DS)=c("PAIS.1","PAIS.2","CONTINENTE","YEAR",
+             "x01","x02","x03","x04","x05","x06","x07",
+             "x08","x09","x10","x11","x12","x13","x14",
+             "x15")
+
+#head(DS.matrix)
+
+
+Diccionario=colnames(DS)
+
+```
+
+```{r}
+#-------------------------------------------------------------------------------------
+
+# En este punto, se llama el proceso de completado de datos; siendo necesario indicar la variable de 
+# corte transversal. 
+# Adicionalmente la lista "Vars.Excluir.Imputacion" incluye el listado de variables que no deben ser 
+# incorporadas en el proceso, pues no son variables cuantitativas, sino indicativas.
+
+# De ser necesario los datos seran completados con AMELIA
+#
+Vars.Excluir.Imputacion=c("PAIS.1","CONTINENTE","YEAR", "x06", "x11", "x12")
+DS.A <- Amelia::amelia(x = DS, m=1, cs="PAIS.2",idvars=Vars.Excluir.Imputacion)
+DS.A1=DS.A$imputations$imp1
+
+#-------------------------------------------------------------------------------------
+
+df <- head(DS.A1)
+DT::datatable(df,                    
+              rownames = TRUE, 
+              filter="top",
+              options = list(pageLength = 15, scrollX=T)
+              )
+
+```
+
+
+```{r}
+DS.A1.GRUPO.1=DS.A1[DS.A1$YEAR==2016,c(-1)]
+
+df=head(DS.A1.GRUPO.1)
+
+DT::datatable(df,                    
+              rownames = TRUE, 
+              filter="top",
+              options = list(pageLength = 15, scrollX=T)
+              )
+
+```
+
+
+```{r}
+DS.trabajo=na.omit(DS.A1.GRUPO.1[,c(-1,-2,-3,-4,-9,-14,-15)])
+X=data.matrix(DS.trabajo)
+X.Escalado=scale(X)
+head(X)
+
+#K-MEDIAS
+Kmedias.G1=kmeans(x=X,centers=4)
+Kmedias.G1$centers
+
+#PCA
+princomp(X)
+```
+
+# ANEXOS
+
+```{r, echo=FALSE}
+xfun::embed_file('G:/TRABAJO/LEAD/2020/ESS/000 CLASES/CL0004/Happiness.LAB.csv')
+```
+
+```{r, echo=FALSE}
+xfun::embed_file('G:/TRABAJO/LEAD/2020/ESS/000 CLASES/CL0004/Happiness.LAB.xlsx')
+```
+
+```{r, echo=FALSE}
+xfun::embed_file('G:/TRABAJO/LEAD/2020/ESS/000 CLASES/CL0004/WHR19.pdf')
+```
+
+[NUEVA VERSION DE R4XCL](https://github.com/mbonillacr/R4XCL)

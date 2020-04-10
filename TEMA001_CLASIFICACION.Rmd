@@ -1,0 +1,417 @@
+---
+title: "Big Data & Decision Science"
+date: "minor.bonilla@ulead.ac.cr"
+author: "Minor Bonilla Gómez"
+output:
+  rmdformats::material:
+    highlight: kate
+    self_contained: true
+    code_folding: show
+    thumbnails: true
+    gallery: true
+    fig_width: 4
+    fig_height: 4
+    df_print: kable
+---
+
+```{r echo_f, include=FALSE, message=FALSE, warning=FALSE}
+  knitr::opts_chunk$set(echo = TRUE)
+  CLASE01="C:/Users/minor.bonilla/Pictures/PRESENTACIONES/CLASES/CL01/"
+  CLASE00="C:/Users/minor.bonilla/Pictures/PRESENTACIONES/CLASES/CL00/"
+```
+
+[comment]: <> (
+                LOGIT https://cojamalo.github.io/German_Credit_Analysis/report.html
+                TIME SERIES http://r-statistics.co/Time-Series-Analysis-With-R.html
+                VISUALIZACION:ggfortyfy
+                http://www.sthda.com/english/wiki/ggfortify-extension-to-ggplot2-to-handle-some-popular-packages-r-software-and-data-visualization
+                OJO CON ESTE: 
+                https://daviddalpiaz.github.io/r4sl/logistic-regression.html#rmarkdown-4)
+
+
+# LIBRERIAS
+
+```{r librerias, include=TRUE, message=FALSE, warning=FALSE}
+
+ #Recuerde que para instalar una librería hay que invocar: install.packages("NOMBRE_LIBRERIA")
+
+  library(devtools)   # Instalación desde Github
+  library(xfun)       # Anexo de externos
+  library(datarium)   # Sets de Datos
+  library(zoo)        # Analisis
+  library(ggfortify)
+  library(magrittr)   # 
+  library(DT)         # Manejo de tablas
+  library(tidyverse)  # Manipulacion de Datos
+  library(cluster)    # Algoritmos de Clasificación
+  library(factoextra) # Visualizacion de Clusters
+  library(gridExtra)  # Visualizacion de Clusters
+  library(kableExtra) # Formato de Tablas
+
+```
+
+# CLASIFICACIÓN
+
+```{r, out.width = "800px",fig.align="CENTER", message=FALSE, warning=FALSE, echo=FALSE}
+  IMG=IMG=paste0(CLASE00,"kmeans.gif")
+  knitr::include_graphics(IMG)
+```
+
+# DATOS: TABLA {.tabset}
+Como lo hemos venido haciendo hasta ahora, nuestras tablas tendrán la configuración rectangular *NP* siendo *N* la cantidad de individuos y *P* la cantidad de variables o dimensiones asociadas a ellos.
+
+```{r, out.width = "800px",fig.align="CENTER", message=FALSE, warning=FALSE, echo=FALSE}
+    IMG=IMG=paste0(CLASE01,"TABLA_np.jpg")
+    knitr::include_graphics(IMG)
+```
+
+## NAs
+Teniendo claro que no todas las tablas contienen la cantidad completa de observaciones vale la pena notar, que las observaciones faltantes son un tema a tratar antes de iniciar nuestro analisis. Éste es un tema que por sí mismo envuelve una discusión completa; discusión que no será tratada en este documento, por ahora, haremos uso de la funcion *na.omit()* que omite el uso del registro completo, si a éste le falta una medición en cualquiera de las dimensiones o variables.
+
+## SCALE
+A fin de evitar que temas irrelevantes -como la unidad de medida de la variable- conduzcan a sesgos evitables, procedemos ademas a estandarizar los datos, a fin de que todas las dimensiones mantengan equilibrio y evitemos con ello que una sola variable absorva la responsabilidad absoluta. Esta estandarización es facilitada en *R* a partir del uso de la función **scale()** conduciendo a una transformación en nuestras variables, forzando que todas y cada una de ellas esté centrada en *CERO* con desviacion estandar de *UNO*
+
+$ESCALAMIENTO :  \frac{(x{_i}-\mu)}{\sigma}$
+
+# ANÁLISIS DE *'CLUSTERS'* {.tabset}
+
+## El problema
+El problema de clasificación de datos, es uno de los problemas mayormente presentes en la realidad humana. De manera cotidiana enfrentamos el hecho de agrupar poblaciones en pequeños segmentos, cada uno compartiendo características similares. Similares? Qué significa? Cómo medirlo?
+
+Con el propósito de dar respuesta a estas y otras preguntas, han sido presentadas diversas propuestas que abordan el problema numericamente, todas con un mismo objetivo, lograr que cada individuo sea asignado al grupo que represente de la mejor manera sus características en un espacio multidimiensional. 
+
+Es importante señalar, que no hablamos de particiones arbitrarias y simplistas en los datos -del tipo reglas de negocio- que tienden a ser confundidas con las técnicas de clusterizacion. 
+
+Nos referimos a reglas como "que tengan una edad entre A y B" o bien "que sus ingresos esten entre A y B, menores que A, mayores que B". Esos son ejemplos de *particiones* que no son más que una forma de reducir de manera arbitraria los *n* individuos en unas pocas clases.
+
+Hablamos entonces de técnicas que se fijen en las *p* dimensiones en las que están definidos los datos y de manera **simultánea y objetiva** permita crear los *k* grupos que requerimos
+
+Requerimos dos condiciones que deben cumplirse de manera simultánea:
+
+* 1 - Similitud *dentro* de cada grupo
+* 2 - Disimilitud *entre los grupos* 
+
+Es decir, necesitamos que los individuos que conforman al grupo sean lo más similares entre si, es decir *entre individuos que comparten grupo*, al mismo tiempo, que cada uno de los grupos presente la mayor disimilitud con respecto a los demás *grupos*.
+
+Dado que apriori desconocemos la forma en que están formados los grupos (es justamente lo que buscamos) no contamos dentro del set de datos con una variable que guíe nuestros parámetros, por lo que este tipo de algoritmos cae en la categoría de *ALGORITMO NO SUPERVISADO*.
+
+# DATOS: ARREST
+
+Usaremos el set público *USArrests* que contiene los datos de arrestos policiales en 50 estados de USA catalogados en: Asalto, asesinato y violación.
+
+Los datos son expresados en cantidad de arrestos por cada 100mil residentes a fin de que sean comparables a través de los estados. Se incluye además el porcentaje de población que vive en areas urbanas.
+
+```{r CargaDatos001, Warning=FALSE}
+  #library(datarium)
+  df <- USArrests
+  DT::datatable(df,                    
+                rownames = TRUE, 
+                filter="top",
+                options = list(pageLength = 15, scrollX=T)
+                )
+```
+
+Como se mencionó anteriormente, queremos eliminar la influencia que una variable pueda tener por sobre las demás por el simple hecho de ser medida un una unidad distita, procediendo a estandarizar el conjunto de datos
+
+```{r CargaDatos002, Warning=FALSE}
+  #library(kableExtra)  
+  df <- scale(df)
+  dt=head(df,10)
+  kable(dt) %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position ="left")#   "float_right")
+```
+
+# DISTANCIA {.tabset}
+
+En el apartado inicial nos planteamos la tarea de definir grupos que estén **juntos** dentro del conjunto, pero **separados** entre los grupos, invocando de manera inmediata la noción de distancia entre observaciones. 
+
+Para nuestra intención debemos entonces crear un instrumento que guarde información sobre ese concepto de distancia. 
+
+Almacenaremos esta información de manera conveniente, en una matriz, a la que denominaremos matriz de distancias (doble puntaje por la creatividad!) que contendrá en cada una de sus entradas la distancia existente entre cada par de observaciones. Aun nos falta definir de manera explícita el concepto *distancia*.
+
+Varios son los planteamientos clásicos de distancia, siendo los más frecuentemente empleados las distancias *Euclídea* y *Manhattan*
+
+La escogencia de cada una de estas distancias, se relaciona con la naturaleza del problema y de los datos en cuestión. Cuando no se tiene claro este tema, lo más recomendable consiste en hacer uso de la distancia *Euclídea* teniendo claro siempre, que la elección entre una u otra métrica tendrá efectos en la conformación de los grupos. 
+ 
+ 
+## EUCLIDEA
+Distancia [Euclídea:](https://en.wikipedia.org/wiki/Euclidean_distance)
+
+```{r, out.width = "800px",fig.align="CENTER", message=FALSE, warning=FALSE, echo=FALSE}
+    IMG=IMG=paste0(CLASE01,"Pitagoras_Euclides.png")
+    knitr::include_graphics(IMG)
+```
+
+$d_{Euclidea}(x_i,y_i) = {\sqrt{\sum_{i=1}^{n}{(x{_i}-y{_i}}})^2}$
+
+## MANHATTAN
+Distancia [Manhattan: ](https://en.wikipedia.org/wiki/Taxicab_geometry)
+
+$d_{Manhattan}(x_i,y_i) = {\sqrt{\sum_{i=1}^{n}{|x{_i}-y{_i}}}|}$
+
+Adicionalmente nos encontramos de manera frecuente en la literatura con el planteamiento de Minkowski. 
+
+## MINKOWSKI
+Distancia [Minkowski :](https://en.wikipedia.org/wiki/Minkowski_distance)
+
+$d_{Minkowski}(x_i,y_i) = ({\sqrt{\sum_{i=1}^{n}{|x{_i}-y{_i}}}|})^{1/p}$
+
+# DISTANCIA EUCLIDEA en R
+
+A partir del uso del paquete *factoextra* la tarea computacional de las distancias se reduce sustanciamente al uso de un comando, basta con invocar la función *get_dist* para lograr nuestro objetivo pero además este paquete nos provee de una función para visualizar los resultados*fviz_dist*. 
+
+Pasemos a una sencilla ilustración, usando *get_dist* para el cómputo de nuestra matriz de distancias (por individuo). Por defecto la distancia empleada es la *Euclidea* pudiendo tambien emplear la *Manhattan* y la *Minkowski*; 
+
+```{r CargaDatos1, Warning=FALSE}
+  distance <- get_dist(df)
+print(distance)
+```
+
+La librería *fviz_dist* será empleada para visualizar la matriz de distancias resultante.
+
+```{r, out.width = "800px", CargaDatos2, Warning=FALSE}
+  fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+```
+
+# K-MEDIAS  {.tabset}
+
+El algoritmo K-medias, siendo un clásico en la literatura, es uno de los algoritmos *no supervisados* mayormente empleados por su facilidad de implementación, asi como por su fácil comprensión. 
+
+Parte el problema de dividir el conjunto de datos en **K** grupos, todos disímiles entre sí y como mencionamos antes, similares en su interior. 
+
+El algoritmo usa por parámetro el elemento *K* que debe ser suministrado por el analista, siendo éste el único elemento o pista con que cuenta el algoritmo. 
+
+A partir de esa cantidad definida de grupos, el algoritmo procederá a crear una cantidad *K* de centroides a los que asociará cada una de las observaciones contenidas en la tabla *NP* de datos, asignando cada observación a aquel grupo cuya distancia sea menor con respecto al conjunto de centroides, es decir, elegirá aquel centroide que minimiza la distancia entre la obseravación y el centro. De esta forma, este centroide no es más que un promedio multidimensional, o centro de gravedad de cada grupo.
+
+## IDEA
+La idea básica que subyace detrás del algoritmo de *K-medias* consiste en definir una cantidad predefinida de clusters que cumplen con la condición simultánea de que la variacion **DENTRO DEL CLUSTER** es mínima, al tiempo que la variación **ENTRE ClUSTERS** es máxima. A la primer condición la denominaremos como **VARIACION INTRA CLUSTERS [ViC]** mientras que la segunda **VARIACION ENTRE CLUSTERS [VeC]** 
+
+La versión más popular de éste algoritmo se atribue a Hartigan-Wong (1979). En esta versión, se define la variación *ViC* como la suma de las distancias Euclideas de cada observación con respecto al centroide correspondiente:
+
+$W(C_k) = \sum_{i=1}^{n}{(x_i-\mu_k})^2$
+
+Donde:
+$x_i$ corresponde a la observación i-ésima en análisis 
+$mu_k$ corresponde al k-ésimo centroide 
+
+Cada observacion $x_i$ será asignada al cluster cuya suma cuadratica de distancia, con respecto a su centroide $mu_k$ sea mínima. 
+
+Se define la Variación intra Cluster *VIC* como:
+
+$VIC = W(C_k) = \sum_{k=1}^{k}\sum_{x_i \in C_k}{(x_i-\mu_k})^2$
+
+que dada la condición de similitud que buscamos entre los miembros de cada grupo, se traduce en obtener un VIC lo más reducido posible.
+
+## ALGORITMO
+
+k-medias, define de entrada un parámetro que a todas luces reviste una gran relevancia, el parámetro *K*. Éste es un parámetro que debe suministrar el analista, quien apriori define la cantidad *K* de grupos que pretende de sus datos. Definido éste parámetro, son seleccionados aleatoriamente k-puntos del conjunto de datos, asumiendolos como centroides iniciales. 
+
+Una vez definidos esos puntos iniciales, se computa la distancia de cada observación con respecto a esos centroides iniciales, en esta etapa, cada observación es asignada a un grupo inicial. Habiendo definido todos los grupos, se procede a actualizar el valor de los centroides. Habiendo recalculado los centroides, se revisa si al calcular las distancias nuevamente es necesario mover de grupo algunas observaciones. Habiendo completado la reasignación, se vuelven a computar los centroides. Se vuelven a recomputar las distancias y se evalúa si es necesario mover alguna observación, con el consecuente recomputo de centroides. El proceso continua hasta que se alcance algun grado de convergencia, o bien no sean necesarias más reubicaciones de observaciones en otros grupos.
+
+## RESUMEN  
+* 1- Seleccionar los K puntos en el espacio en el que "viven" los objetos que se quieren clasificar. Estos puntos representan los centroides iniciales de los grupos.
+* 2- Asignar cada objeto al grupo que tiene el centroide más cercano.
+* 3- Tras haber asignado todos los objetos, recalcular las posiciones de los K centroides.
+* 4- Repetir los pasos 2 y 3 hasta que los centroides se mantengan estables.
+
+Aunque se puede probar que este algoritmo siempre termina, no siempre la distribución que se alcanza es la óptima, ya que es muy sensible a las condiciones iniciales.
+
+## COMPUTO
+
+En *R* contamos con la implementación completa del algoritmo, por lo que basta invocar la función *kmeans*. 
+
+Iniciamos con la seleccion de K=2 para lo cual es necesario definir a *R* el parametro *k* que lo encontramos nombrado como 'centers'; de forma tal que para *k=2* (centers = 2). Adicionalmente y para sortear (al menos parcialmente) el problema asociado a la definicion de las condiciones iniciales, *R* nos permite repetir el proceso con distintas combinaciones de puntos de iniciaciónincluyendo para ello en la función el parametro *nstart* que en nuestro caso poblaremos con un valor de 25. Es decir evaluaremos 25 configuraciones iniciales, lo cual es altamente recomendo.
+
+```{r ComputarKmeans, Warning=FALSE}
+dfk3 <- kmeans(df, centers = 3, nstart = 25)
+str(dfk3)
+```
+
+de donde obtenemos los centros caracterizadores de los *k=2* grupos definidos
+
+```{r Computadfk2centros, Warning=FALSE}
+dfk3$centers
+```
+
+siendo el grupo 1, el grupo donde se manifiestan mayoritariamente los actos delictivos y el 2 su contraparte.
+
+Pero además, el objeto retorna una serie de información adicional a la que podemos tener acceso con solo llamar al objeto y agregar el simbolo *$*. Resultados contenidos en el objeto:
+
+* cluster:      Resultado de asignación de cada observación-
+* centers:      Centroides o valores medios
+* totss:        Suma total de cuadraros
+* withinss:     Suma de cuadrados *ViC* se incluyen tantos como *k*
+* tot.withinss: Suma de *ViC* equivlente a **sum(withinss)**
+* betweenss:    Suma de cuadrados *VeC* se incluyen tantos como *k*
+* size:         Total de elementos por cada cluster
+
+## EJEMPLO
+
+Cluster nos retorna la asignación de cada elemento, a modo de ejemplo, pidamos que nos muestre los primeros 5 individuos y el resultado de su clasificación
+```{r Computadfk2elementos, Warning=FALSE}
+  head(dfk3$cluster,5)
+```
+de donde podemos notar que Arkansas es el unico clasificado en el grupo de menor incidencia delictiva
+
+Estamos preparados entonces para mostrar el output completo:
+
+```{r Print001, Warning=FALSE}
+  print(dfk3)
+```
+
+La visualizaci[on gráfica puede reducir bastante el tiempo que dedicamos a la comprensión de resultados, que gracias a la implementación dispuesta en *R* resulta de mucha facilidad. Una bondad del paquete *factoextra* es que nos permite visualizar en un plano de dos dimensiones multiples dimensiones (más que 2) pues internamente utiliza en analisis de componentes principales [ACP]("https://es.wikipedia.org/wiki/An%C3%A1lisis_de_componentes_principales") retornando de manera visual el plano compuesto por los Componentes Principales 1 y 2 (los porcentajes indicados sumados, explican la porcion de varianza que absorven estos primeros componentes)
+
+```{r Graf001, out.width = "800px", Warning=FALSE}
+  fviz_cluster(dfk3, data = df)
+```
+
+Como hemos notado, el algoritmo *k-medias* impone apriori la condicion de definición de la cantidad de grupos, por lo que la pregunta inmediata es: *Cual es el k "optimo"?*
+
+Una respuesta inmediata nos lleva a probar otros valores para el parámetro K a fin de contrastar la estabilidad de los resultados obtenidos, es decir, el "tanteo". Probemos entonces con valores para $k = {3,4,5}$
+
+y comparemos sus resultados...
+
+```{r Graf003, out.width = "800px", Warning=FALSE}
+  
+  dfk4 <- kmeans(df, centers = 4, nstart = 25)
+  dfk5 <- kmeans(df, centers = 5, nstart = 25)
+  dfk6 <- kmeans(df, centers = 6, nstart = 25)
+  
+  p1 <- fviz_cluster(dfk3, geom = "point",  data = df) + ggtitle("k = 3")
+  p2 <- fviz_cluster(dfk4, geom = "point",  data = df) + ggtitle("k = 4")
+  p3 <- fviz_cluster(dfk5, geom = "point",  data = df) + ggtitle("k = 5")
+  p4 <- fviz_cluster(dfk6, geom = "point",  data = df) + ggtitle("k = 6")
+  
+  gridExtra::grid.arrange(p1, p2, p3, p4, nrow = 2)
+
+```
+
+El gráfico nos sugiere otras configuraciones de grupos, pero no nos dice nada de cual de ellos es mejor.
+
+## *K* OPTIMO  {.tabset}
+
+Dado que no queremos depender de la suerte del analista y su definición inicial de *k* nos centraremos en pensar en un criterio objetivo que nos permita decidir objetivamente el valor de k. 
+
+### CODO
+
+Recordemos que la idea del algoritmo se basa en particionar datos, haciendo que dicha particion se la menor intra grupo (ViC)
+
+$Minimizar: \sum_{k=1}^{k} W(C_k)$
+
+Donde $C_k$ es el $k^{ésimo}$ clúster y $W(C_k)$ la Variación Intra Cluster *ViC*. 
+
+Si es que sumamos la variación interna *SVic* (algo similar a la suma de errores cuadrados de Regresión lineal) definimos una métrica que podemos fijar como objetivo, particularmente hacerla lo más pequeña posible. A partir de esta metrica, podemos entonces definir un criterio de selección para la cantidad de cluster *K*.
+
+El algoritmo para nuestra tarea consiste en:
+
+* 1- Computar el algoritmo de K-Medias para distintos valores de k
+* 2- Para cada k, computar la suma de variaciones intra cluster *SViC* 
+* 3- Graficar los distintos valores *SViC* obtenidos para cada *K* 
+* 4- Visualizar el punto donde la curva presenta un *codo* ( o variacion severa de pendiente)
+
+Este algoritmo -como era de esperar- ya se encuentra implementado en *R* en la función *fviz_nbclust*
+
+```{r Graf004, Warning=FALSE}
+  set.seed(123)
+  fviz_nbclust(df, kmeans, method = "wss")
+```
+
+### BRECHA (gap)
+
+Publicado por R. Tibshirani, G. Walther, and T. Hastie (Stanford University, 2001) [ver documento]("https://statweb.stanford.edu/~gwalther/gap"). 
+
+Este metodo puede ser emplado en otros metodos de clasificacion(i.e. K-means clustering, hierarchical clustering) consiste en comparar la variación total intra cluster *SViC* para distintos valos de *k* con valores de referencia de una distribución nula de los datos (por ejemplo si agrupaciones).
+
+El conjunto de datos de referencia se construye a partir de simulaciones [Monte Carlo]("https://es.wikipedia.org/wiki/M%C3%A9todo_de_Montecarlo") en el proceso de muestreo, de forma tal que cada variable $x_i$ en el conjunto de datos, pertenece al intervalo $I=[min(x_i), max(x_i)]$ generando *n* valores distribuídos uniformemente en el intervalo $I$.
+
+Para los datos observados y los de referencia, se computa el *ViC* para distintos valores *k* con los que se procede a computar el *GAP* entre uno y otro grupo:
+
+$Gap_n(k)=E_n log(W_k) + log(W_k)$
+
+$E_n^*$:  Valor esperado en la muestra de referencia, siendo definido via proceso *B* de [bootstrapping]("https://es.wikipedia.org/wiki/Bootstrapping_(estad%C3%ADstica)") en el que se generan B copias del conjunto de datos de referencia para el que se computa el promedio $log(W_k^*)$. 
+
+El *GAP* mide la desviación entre el valor $W_k$ observado y el valor esperado bajo la hipotesis nula.
+
+El valor estimado de cantidad optima de grupos *K* $\hat k$  corresponderá a aquel *K* que maximiza el valor $Gap_n(k)$, lo que implica que la estructura de agrupamiento está lejos de una estructura de distribucupib uniforme de observaciones.
+
+En síntesis:
+
+* 1- Agrupar los datos variando el parametro *K* $k= 1, \dots, k_{max}$ computando el correspondiente $W_k$
+* 2- Generar *B* conjuntos de datos de referencia y agrupar cada uno de ellos variando el número *k* de grupos $k= 1, \dots, k_{max}$. Computar: $Gap_n(k)=E_n log(W_k) + log(W_k)$
+* 3- Sea $\hat w = {\frac {1}{B} \sum_{b} log(W_{kb}^*)}$ compute la desviacion estandar $sd(k)= \sqrt {\frac {1}{B} \sum_{b} log(W_{kb}^*-\hat w)^2}$ defina $s_k=s_d \sqrt{1+\frac{1}{B}}$
+* 4- Escoja el numero de clusters con el menor *k* tal que: 
+
+$Gap(k) >= Gap(k+1) -S_{k+1} $
+
+``` Ahora bien, en *R* basta con invocar la funcion *clusGap* que junto con la función *fviz_gap_stat* nos permitirá visualizar los resultados. Ahora bien, si queremos acceder a más opciones para elegir K en la libreria NbClust publicada por Charrad et al., 2014 se incorporan cerca de 30 indices adicionales pare esta misma tarea``` 
+
+```{r Graf005, Warning=FALSE}
+  set.seed(123)
+  gap_stat <- clusGap(df, FUN = kmeans, nstart = 25,K.max = 10, B = 50)
+  print(gap_stat, method = "firstmax")
+``` 
+
+```{r Graf006, Warning=FALSE}
+  fviz_gap_stat(gap_stat)
+``` 
+
+## RESULTADOS
+Los datos sugieren una cantidad *K=4* como número optimo de grupos, por lo que podemos fijar el análisis final como:
+
+```{r Graf007, warning=FALSE}
+  set.seed(123)
+  final <- kmeans(df, 4, nstart = 25)
+  print(final)
+``` 
+
+y obtener de ellos su visualización a partir de *fviz_cluster*:
+
+```{r Graf008, warning=FALSE}
+  fviz_cluster(final, data = df)
+``` 
+
+```{r Graf009, include=FALSE, echo=FALSE, warning=FALSE}
+  USArrests %>%
+    mutate(Cluster = final$cluster) %>%
+    group_by(Cluster) %>%
+    summarise_all("mean")
+``` 
+
+# PASO A PASO
+
+```{r, include=TRUE, message=FALSE, warning=FALSE}
+    xfun::embed_file('TEMA001_Kmedias.xlsx')
+```
+
+# COMENTARIOS
+Como pudo observarse el algoritmo de *K-Medias* por su facilidad de implementación, facilita la agrupación grandes bloques de datos en unos pocos grupos. Su mayor debilidad reside en el hecho de depender de un parámetro arbitrario *K* que lo hace dependiente de criterios arbitarios debilitando su potencia. Algunas técnicas han sido propuestas para mejorar esta debilidad, favoreciendo al algoritmo. 
+
+Otras técnicas están exentas de esta debilidad, entre ellas la definición de clusters jerarquicos, basados en la idea de *árboles de decisión* que al no requerir de entrada la imposición de un parámetro pueden conducir a resultados con menor sesgo de analista.
+
+Un segundo elemento que introduce ruído en la construcción de los grupos es la existencia de valores extremos en los datos, conduciendo a grupos disimiles dentro de si. Para ello algunas técnicas han planteado el uso de los *medioides* que reducen la sensibilidad del algoritmo a la presencia de valores extremos (conocidos como [k-Medoids]("https://es.wikipedia.org/wiki/K-medoids")) 
+
+
+# R4XCL
+
+R4XCL es una herramienta que pretende emplear el motor analítico de R por usuarios sin conocimientos previos de programación en dicho lenguaje. R4XCL emplea como puente a [BERT](http://bert-toolkit.com/) para generar una interacción natural para el usuario, desde su entorno de Excel.
+
+Para instalar R4XCL
+
+* 1-Proceda a descargar e instalar BERT (sólo disponible para PC)
+* 2-Habiendo instalado BERT proceda a incluir dentro de la carpeta 'functions' de BERT (por default puede encontrarla en 'Documents\BERT\functions') el contenido de las librerias contenidas en LIBRERIAS.ZIP
+* 3-Instale el Addin R4XL.xla para ello:
+  * Vaya a FILE/OPTIONS/ADDINS/GO/BROWSE
+    Seleccione R4XCL BETA V1.0.xlam de la ruta dende depositó el archivo incialmente
+  * Una buena práctica es permitir que el archivo viva en
+  C:\Users[USERNAME]\AppData\Roaming\Microsoft\AddIns
+  * Active el Addin
+  
+ANEXO (punto 2)
+```{r, include=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+xfun::embed_file('LIBRERIAS.zip')
+```
+
+ANEXO (punto 3)
+```{r, include=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+xfun::embed_file('R4XCL BETA V1.0.xlam')
+```

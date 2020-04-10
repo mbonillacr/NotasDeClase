@@ -1,0 +1,320 @@
+---
+title: "BD&DS: OLS - Variable Omitida"
+date: "minor.bonilla@ulead.ac.cr"
+author: "Minor Bonilla Gómez"
+output:
+  rmdformats::material:
+    highlight: kate
+    self_contained: true
+    code_folding: show
+    thumbnails: true
+    gallery: true
+    fig_width: 4
+    fig_height: 4
+    df_print: kable
+---
+
+```{r echo_f, include=FALSE, message=FALSE, warning=FALSE}
+  knitr::opts_chunk$set(echo = TRUE)
+  UNIDAD="f:"
+  CLASE01=paste0(UNIDAD,"/PFCTI/IMAGENES PRESENTACIONES/CLASES/CL01/")
+  CLASE00=paste0(UNIDAD,"/PFCTI/IMAGENES PRESENTACIONES/CLASES/CL00/")
+```
+
+# .
+
+```{r IMGLoop, out.width = "800px",fig.align="right", message=FALSE, echo=FALSE}
+    IMG=paste0(CLASE00,"Lead001.gif")
+    knitr::include_graphics(IMG)
+```
+
+# LIBRERIAS
+
+Como buena práctica, siempre como primer paso llamar las librerías que serán utilizadas a lo largo del proceso de ejecución, haciendo con ello más fácil la lectura del documento. Cada vez que una librería sea invocada lo haremos a través de la orden **{NombreLibreria}::{NombreFuncion}**. Recuerde que en caso de no tener instalada la libreria necesaria, basta con llamar el comando **install.packages**.
+
+
+```{r librerias, include=TRUE, message=FALSE, warning=FALSE}
+
+set.seed(123456789)
+
+library(rmarkdown)
+library(datarium)
+library(knitr)
+library(magrittr)
+library(kableExtra)
+library(FactoMineR)
+library(factoextra)
+library(plotly)
+library(car)
+library(lmtest)
+library(tufte)
+library(MASS)
+
+library(stargazer)
+
+```
+
+Todos los cómputos mostrados pueden ser reproducidos en una máquina personal que tenga instalado **R**.
+
+
+# VARIABLE RELEVANTE  {.tabset}
+
+Y qué tal si la variable que eliminamos era relevante?
+
+[ESPECIFICACION](https://es.wikipedia.org/wiki/Especificaci%C3%B3n_(An%C3%A1lisis_de_la_regresi%C3%B3n))
+
+Entramos en un área de mucho cuidado relacionado con el hecho de excluir de nuestro análisis una variable relevante. Hasta ahora las violaciones a los supuestos han supuesto problemas de inferencia.
+
+La variable omitida introduce un problema superior, el sesgo en los parámetros. La importancia del tema es tal, que evaluaremos el problema en un espacio de datos controlados, creados apriori a fin de demostrar el problema de la violación de éste supuesto.
+
+## VARIABLE OMITIDA
+
+El riesgo de eliminar una variable relevante, es tan elevado, que puede llevarnos a decir absolutamente lo contrario a lo que deberíamos. 
+En este ejemplo demostraremos el riesgo de hacer uso indiscriminado de un instrumento que desconocemos.
+
+Fijamos la semilla aleatoria de forma tal, que podamos replicar el ejercicio con los mismos resultados
+
+```{r}
+set.seed(12345678)
+```
+
+En este caso queremos una muestra de tamaño N
+
+```{r}
+N=100
+```
+
+Para P variables que queremos crear (de manera controlada)
+
+```{r}
+P=3
+```
+
+Con los parámetros anteriores tendremos una cantidad **NP** de registros creados artificialmente 
+
+```{r}
+REALIZACIONES = N*P
+```
+
+Aprovechando que somos dueños del proceso generador de datos, nos damos la libertad de *CREAR* los ponderadores que relacionarán nuestras variables artificiales. A fin de no complicar el ejercicio, usaremos 
+
+$$\beta_{i}=2^{i-1}$$
+
+$$con~~i=[1,4]$$
+
+```{r}
+Beta_Gen=c()
+for  (i in 1 : 4){Beta_Gen[i]=2^(i-1)}
+print(Beta_Gen)
+```
+
+$$\beta = \left[\begin{array}
+          {rrr}
+          1\\
+          2\\
+          4\\
+          8
+\end{array}\right]$$
+
+Arbitrariamente le definimos una matriz de CORRELACIONES para la creación de un par de variables artificialmente correlacionadas en un bajo grado *0.1* (esto será particularmente importante más adelante cuando analicemos el supuesto de independencia en los estimadores)
+
+$$\text{M. Correlacion} = \left[\begin{array}
+          {rrr}
+          1    & 0.1 & 0.05  \\
+          0.1  &  1   & -0.1 \\
+          0.05 & -0.1 &  1  \end{array}\right]$$
+
+
+```{r}
+CORRELACION=matrix(c(1, 0.1,0.05,0.1,1,-0.1,0.05,-0.1,1), nrow=3, ncol=3)
+print(CORRELACION)
+```
+
+Con todos los ingredientes, procedemos a crear nuestro set de variables "independientes"
+
+```{r, out.width = "800px"}
+Datos_Gen = MASS::mvrnorm(n=N, mu=c(0, 0, 0), Sigma=CORRELACION, empirical=TRUE)
+Datos_Gen <- as.data.frame(Datos_Gen)
+colnames(Datos_Gen)=c("X1","X2","X3")
+X1=Datos_Gen[,1]
+X2=Datos_Gen[,2]
+X3=Datos_Gen[,3]
+
+plotly::plot_ly(Datos_Gen, x = ~X1, y = ~X2, z= ~X3, alpha = 0.4)%>%
+        add_markers(marker = list(line = list(color = "black", width = 0.25)))
+```
+
+Queda aún la tarea de *crear* nuestra variable dependiente **Y**. Para ello usaremos nuestros coeficientes $\beta_{i}$ previamente creados
+
+$$Y_i = ~\beta_0 +~\beta_1 X_{1,~i}+~\beta_2 X_{2,~i} +~\beta_3 X_{3,~i}+ ~ \epsilon_i$$
+
+a saber:
+
+$$Y_i = ~1 +~2 X_{1,~i}+~4 X_{2,~i} +~ 8 X_{3,~i}+ ~ \epsilon_i$$
+
+```{r}
+Datos_Gen$Y=Beta_Gen[1]+Beta_Gen[2]*X1+Beta_Gen[3]*X2+Beta_Gen[4]*X3+rnorm(N)
+plot(Datos_Gen$Y)
+```
+
+```{r}
+especificacion="Y ~ X1 + X2 + X3"
+modelo <- lm(especificacion, data = Datos_Gen)
+stargazer(modelo, type = 'text')
+```
+
+Omitimos variables por *ignorancia* en este caso X2
+
+```{r}
+especificacion2="Y ~ X1 + X3"
+modelo2 <- lm(especificacion2, data = Datos_Gen)
+stargazer(modelo2, type = 'text')
+```
+
+##  DEPENDENCIA {.tabset}
+
+SUPUESTO: Independencia en los Regresores
+
+Y qué con el supuesto de independencia en los regresores?
+
+Ahora decidimos variar el proceso de generación de datos y para ellos definimos en la matriz de CORRELACIONES una relación más intensa entre el par de variables X1 y X2, a las que daremos un grado de relación mayor(en valor absoluto)que ahora será de *-0.75*
+
+$$\text{M. Correlacion} = \left[\begin{array}
+          {rrr}
+          1    & -0.75 & 0.05 \\
+          -0.75  &  1   & -0.1 \\
+          0.05 & -0.1 &  1 \end{array}\right]$$
+
+```{r}
+CORRELACION=matrix(c(1, -0.75,0.05,-0.75,1,-0.1,0.05,-0.1,1), nrow=3, ncol=3)
+```
+
+```{r}
+N=100
+P=3
+Datos_Gen = MASS::mvrnorm(n=N, mu=c(0, 0, 0), Sigma=CORRELACION, empirical=TRUE)
+X1=Datos_Gen[,1]
+X2=Datos_Gen[,2]
+X3=Datos_Gen[,3]
+```
+
+```{r, out.width = "800px"}
+Beta_Gen=c()
+for  (i in 1 : 4){Beta_Gen[i]=2^(i-1)}
+print(Beta_Gen)
+
+Datos_Gen$Y=Beta_Gen[1]+Beta_Gen[2]*X1+Beta_Gen[3]*X2+Beta_Gen[4]*X3+rnorm(N)
+plot(Datos_Gen$Y)
+```
+
+```{r}
+especificacion="Y ~ X1 + X2 + X3"
+modelo <- lm(especificacion, data = Datos_Gen)
+stargazer(modelo, type = 'text')
+```
+
+## OMITIENDO
+
+Omitamos ahora nuestra olvidadiza variable X2
+
+Es importante notar lo que ahora pasará con el coeficiente de X1 (recordemos que ahora existe una relación estrecha de amistad entre X1 y X2). Debemos recordar que *por construccion* 
+
+$$~\beta_1=1,~~~\beta_2=2~~,~~\beta_3=4 ~~y~~ \beta_4=8~$$
+
+```{r}
+especificacion="Y ~ X1 + X3"
+modelo <- lm(especificacion, data = Datos_Gen)
+stargazer(modelo, type = 'text')
+```
+
+## RELACIONES ENTRE REGRESORES
+
+Veamos ahora qué sucede cuando no se respeta la independencia en los regresores
+
+Vamos a alterar un poco la *creación* de nuestros datos, haciendo que algunos de nuestros regresores estén relacionados. 
+
+$$Y_i = ~\beta_0 +~\beta_1 X_{1,~i} +~\beta_2 X_{2,~i}+ ~ \epsilon_i$$
+
+$$X_{2,~i} = ~\alpha_0 +~\alpha_1 X_{1,~i}+ ~ \gamma_i\\
+con~\alpha_0=3~~y~~\alpha_1=9$$
+
+el resultado TEÓRICO entonces es:
+
+$$Y_i = ~\beta_0 +~\beta_1 X_{1,~i} +~\beta_2 ( ~\alpha_0 +~\alpha_1 X_{1,~i}+ ~ \gamma_i)+ ~ \epsilon_i$$
+$$Y_i = ~\beta_0 +~\beta_1 X_{1,~i} +~\beta_2  ~\alpha_0 +~\beta_2 ~\alpha_1 X_{1,~i}  +~\beta_2  ~ \gamma_i+ ~ \epsilon_i$$
+
+$$Y_i = ~\beta_0 + (~\beta_1 +~\beta_2 ~\alpha_1 ) X_{1,~i} +~\beta_2  ~\alpha_0   +~\beta_2  ~ \gamma_i+ ~ \epsilon_i$$
+
+$$Y_i = [ ~\beta_0 +~\beta_2  ~\alpha_0 + ~\beta_2 ~ \gamma_i ]+ (~\beta_1 +~\beta_2 ~\alpha_1 ) X_{1,~i} + ~ \epsilon_i$$
+$$Y_i = [CONSTANTE=\psi]+ (~\beta_1 +~\beta_2 ~\alpha_1 ) X_{1,~i} + ~ \epsilon_i$$
+$$Y_i = \psi+ (~\beta_1 +~\beta_2 ~\alpha_1 ) X_{1,~i} + ~ \epsilon_i$$
+es decir, ya no podemos identificar por separado los efectos de
+$$ ~\beta_1 ~~ y~~\beta_2 $$
+
+```{r}
+
+Beta_Gen=list()
+for  (i in 1 : 4){Beta_Gen[i]=2^(i-1)}
+Beta_Gen=unlist(Beta_Gen)
+
+N=100
+set.seed(123)
+X_1=10*rnorm(N)
+
+set.seed(456)
+a00=3
+a01=9
+
+X_2=a00+a01*X_1+rnorm(N)
+Y =Beta_Gen[1]+Beta_Gen[2]*X_1+Beta_Gen[3]*X_2+rnorm(N)
+
+df=data.frame(
+              "X_1"=X_1,
+              "X_2"=X_2,
+              "Y" =Y)
+
+print(Beta_Gen)
+
+mean(df$Y)
+mean(df$X_1)
+mean(df$X_2)
+```
+
+Teniendo una noción clara de nuestras variables, procedamos con el calculo. Recuerde que insistimos en introducir la variable $X_{2}$ obviando el hecho de que ella es una representacion de $X_{1}$
+
+```{r}
+
+especificacion="Y ~ X_1 + X_2"
+modelo <- lm(especificacion, data = df)
+stargazer(modelo, type = 'text')
+```
+
+Notar que los coeficientes aun muestran el resultado que de ellos esperabamos. 
+
+Procedamos a retirar la variable $X_2$ que sabemos DEBE estar en la espeficicación, pero que además es una expresion de $X_1$. 
+
+Ahora las cosas no resultan agradables en ningun sentido, más aún, el coeficiente asociado a $X_1$ es ahora cercano a 38 (que de nuestro resultado analítico)
+
+$$COEF_2~=~\beta_1 +~\beta_2 ~\alpha_1$$
+recordemos que 
+$$\beta_1=2, \beta_2=4, \alpha_1=9$$
+nuestro resultado analitico nos lleva a esperar un resultado cercano a 38 dado que 
+
+$$COEF_2~=~2 + 4x9 = 38$$
+ Por su parte, sabiamos que $COEF_1$ podia ser expresado como
+ 
+  $$\psi=~\beta_0 +~\beta_2  ~\alpha_0 + ~\beta_2 ~ \gamma_i$$
+ 
+ por lo que esperamos un valor para $\psi$ de 2+4x3=14
+ 
+ 
+```{r}
+especificacion="Y ~ X_1"
+modelo <- lm(especificacion, data = df)
+stargazer(modelo, type = 'text')
+
+```
+
+
+
+No obstante la incluiremos en nuestra **especificación** dado que nos enseñaron que la MINERIA es buena :(
